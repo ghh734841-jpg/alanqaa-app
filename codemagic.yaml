@@ -1,34 +1,17 @@
-name: alanqaa
-description: "تطبيق شركة العنقاء للمقاولات - إدارة طلبات تصنيع المطابخ"
-publish_to: 'none'
-version: 1.0.0+2002
-
-environment:
-  sdk: '>=3.3.0 <4.0.0'
-
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_localizations:
-    sdk: flutter
-  cupertino_icons: ^1.0.6
-  image_picker: ^1.1.2
-  intl: 0.20.2
-  uuid: ^4.4.0
-  firebase_core: ^3.6.0
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.4
-  firebase_storage: ^12.3.4
-  pdf: ^3.11.1
-  printing: ^5.13.4
-  share_plus: ^10.1.2
-  http: ^1.2.2
-  path_provider: ^2.1.4
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^4.0.0
-
-flutter:
-  uses-material-design: true
+workflows:
+  ios-workflow:
+    name: iOS Build Workflow
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Flutter packages get
+        script: |
+          flutter packages pub get
+      - name: Flutter build iOS
+        script: |
+          flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/iphoneos/*.app
