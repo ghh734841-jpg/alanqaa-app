@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myPhone() {
+      return request.auth.token.phone_number;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(myPhone()));
+    }
+
+    // مجموعة المدراء: تُدار يدويًا من Firebase Console فقط (Add document)،
+    // ولا يمكن لأي تطبيق كتابة/تعديل عليها.
+    match /admins/{phone} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // بيانات المستخدمين (تُنشأ تلقائيًا عند أول تسجيل دخول)
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // الطلبات: المدير يرى الكل ويعدّل الكل، العميل يرى وينشئ طلباته فقط
+    match /orders/{orderId} {
+      allow read: if isAdmin() ||
+        (isSignedIn() && resource.data.customerPhone == myPhone());
+
+      allow create: if isSignedIn() &&
+        request.resource.data.customerPhone == myPhone();
+
+      // فقط المدير يقدر يغيّر الحالة/السعر/المدة/الدفع
+      allow update: if isAdmin();
+
+      allow delete: if false;
+    }
+  }
+}
